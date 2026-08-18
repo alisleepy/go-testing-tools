@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试工具集管理面板</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="app-header">
+        <h1 class="app-title">🧰 测试工具集管理面板</h1>
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="list">工具集列表</button>
+            <button class="tab-btn" data-tab="manage">工具管理</button>
+        </nav>
+        <div class="user-area" id="userArea"></div>
+    </header>
+
+    <main class="app-main">
+        <!-- 工具集列表 Tab -->
+        <section id="tab-list" class="tab-panel active">
+            <div class="toolbar">
+                <span class="panel-title">工具集列表（只读）</span>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table" id="listTable">
+                    <thead>
+                        <tr>
+                            <th style="width:60px">序号</th>
+                            <th>工具名称</th>
+                            <th>工具作用</th>
+                            <th>工具地址</th>
+                            <th>备注信息</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="empty-tip" id="listEmpty" style="display:none">暂无工具数据</div>
+            </div>
+        </section>
+
+        <!-- 工具管理 Tab -->
+        <section id="tab-manage" class="tab-panel">
+            <!-- 未登录：登录表单 -->
+            <div id="loginPanel" class="login-panel">
+                <div class="login-card">
+                    <h2>管理员登录</h2>
+                    <form id="loginForm">
+                        <div class="form-item">
+                            <label>账号</label>
+                            <input type="text" id="loginUser" autocomplete="username" required>
+                        </div>
+                        <div class="form-item">
+                            <label>密码</label>
+                            <div class="password-box">
+                                <input type="password" id="loginPass" autocomplete="current-password" required>
+                                <button type="button" class="pwd-toggle" id="pwdToggle" aria-label="切换显示">👁</button>
+                            </div>
+                        </div>
+                        <div class="form-error" id="loginError"></div>
+                        <button type="submit" class="btn btn-primary btn-block">登录</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 已登录：管理面板 -->
+            <div id="managePanel" style="display:none">
+                <div class="toolbar">
+                    <span class="panel-title">工具管理</span>
+                    <div class="toolbar-right">
+                        <button class="btn btn-primary" id="btnAdd">+ 新增工具</button>
+                    </div>
+                </div>
+                <div class="tip">💡 拖动最左侧的 ID 列可上下调整顺序，松开后自动保存</div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="manageTable">
+                        <thead>
+                            <tr>
+                                <th style="width:80px">ID</th>
+                                <th>工具名称</th>
+                                <th>工具作用</th>
+                                <th>工具地址</th>
+                                <th>备注信息</th>
+                                <th style="width:160px">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div class="empty-tip" id="manageEmpty" style="display:none">暂无工具数据，点击右上角「新增工具」开始</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 新增/编辑弹窗 -->
+    <div class="modal" id="editModal" style="display:none">
+        <div class="modal-mask"></div>
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <span id="editModalTitle">新增工具</span>
+                <button class="modal-close" data-close="editModal">×</button>
+            </div>
+            <form id="editForm" class="modal-body">
+                <input type="hidden" id="editId">
+                <div class="form-item">
+                    <label>工具名称 <span class="req">*</span></label>
+                    <input type="text" id="editName" maxlength="100" required>
+                </div>
+                <div class="form-item">
+                    <label>工具作用 <span class="req">*</span></label>
+                    <input type="text" id="editPurpose" maxlength="200" required>
+                </div>
+                <div class="form-item">
+                    <label>工具地址 <span class="req">*</span></label>
+                    <input type="url" id="editURL" placeholder="https://example.com" required>
+                </div>
+                <div class="form-item">
+                    <label>备注信息</label>
+                    <textarea id="editRemark" rows="3" maxlength="500"></textarea>
+                </div>
+                <div class="form-error" id="editError"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" data-close="editModal">取消</button>
+                    <button type="submit" class="btn btn-primary">确认</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 删除确认弹窗 -->
+    <div class="modal" id="confirmModal" style="display:none">
+        <div class="modal-mask"></div>
+        <div class="modal-dialog modal-sm">
+            <div class="modal-header">
+                <span>删除确认</span>
+                <button class="modal-close" data-close="confirmModal">×</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmText"></p>
+                <div class="modal-footer">
+                    <button type="button" class="btn" data-close="confirmModal">取消</button>
+                    <button type="button" class="btn btn-danger" id="confirmOk">确认删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <footer class="app-footer">
+        使用问题请联系 wangkaikai01
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
